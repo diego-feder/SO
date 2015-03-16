@@ -77,6 +77,11 @@ runcmd(struct cmd *cmd)
      * TAREFA2: Implemente codigo abaixo para executar
      * comandos simples. */
 
+    /* execvp é o único exec que busca o nome do comando
+       informado na variavel PATH e passa um array de 
+       parametros a serem executados, sem ter que passar
+       parametro por parametro como argumentos.
+    */
     execvp(ecmd->argv[0], ecmd->argv);
     
     /* MARK END task2 */
@@ -129,8 +134,13 @@ main(void)
     /* TAREFA1: O que faz o if abaixo e por que ele é necessário?
      * Insira sua resposta no código e modifique o fprintf abaixo
      * para reportar o erro corretamente. */
+
+    /* o if abaixo processa o comando cd e ele é necessário para
+       realizar uma mudança de diretório usando a chamada chdir
+       do POSIX */
+
     if(buf[0] == 'c' && buf[1] == 'd' && buf[2] == ' '){
-      buf[strlen(buf)-1] = 0;
+      buf[strlen(buf)-1] = 0; // necessario para tirar o \n
       if(chdir(buf+3) < 0)
         fprintf(stderr, "O diretorio %s não existe \n", buf+3);
       continue;

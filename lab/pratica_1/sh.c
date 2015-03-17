@@ -7,6 +7,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
+#include <errno.h>
 
 /* MARK NAME Seu Nome Aqui */
 /* MARK NAME Nome de Outro Integrante Aqui */
@@ -83,6 +84,8 @@ runcmd(struct cmd *cmd)
        parametro por parametro como argumentos.
     */
     execvp(ecmd->argv[0], ecmd->argv);
+    if (errno == ENOENT)
+        fprintf(stderr, "%s: Arquivo ou diretorio nao encontrado\n", ecmd->argv[0]);
     
     /* MARK END task2 */
     break;
@@ -104,10 +107,31 @@ runcmd(struct cmd *cmd)
 
   case '|':
     pcmd = (struct pipecmd*)cmd;
+
     /* MARK START task4
      * TAREFA4: Implemente codigo abaixo para executar
      * comando com pipes. */
-    fprintf(stderr, "pipe nao implementado\n");
+
+    pipe(p);
+    r = fork1();
+
+    if (r == 0) { // processo filho
+        // fecha o final da saida do pipe que nao sera utilizado
+        close(p[1]);
+        // substitui stdin com a entrada do pipe
+        dup2(p[0], fileno(stdin));
+        // executa comando a direita
+        runcmd(pcmd->right);
+    }
+    else { // pai
+        // fecha o final da entrada do pipe (ainda esta aberto no filho)
+        close(p[0]);
+        // substitui stdout com a saida do pipe
+        dup2(p[1], fileno(stdout));
+        // executa comando a esquerda
+        runcmd(pcmd->left);
+    }
+
     /* MARK END task4 */
     break;
   }    
@@ -146,7 +170,7 @@ main(void)
     if(buf[0] == 'c' && buf[1] == 'd' && buf[2] == ' '){
       buf[strlen(buf)-1] = 0; // necessario para tirar o \n
       if(chdir(buf+3) < 0)
-        fprintf(stderr, "O diretorio %s não existe \n", buf+3);
+        fprintf(stderr, "O diretorio %s nao existe \n", buf+3);
       continue;
     }
     /* MARK END task1 */

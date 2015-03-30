@@ -6,9 +6,9 @@
 #ifndef __QUEUE__
 #define __QUEUE__
 
-/*#ifndef NULL
+#ifndef NULL
 #define NULL ((void *) 0)
-#endif*/
+#endif
 
 //------------------------------------------------------------------------------
 // estrutura de uma fila genérica, sem conteúdo definido.

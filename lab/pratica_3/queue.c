@@ -30,9 +30,62 @@ void queue_append (queue_t **queue, queue_t *elem) {
     }
 }
 
+queue_t *queue_remove (queue_t **queue, queue_t *elem) {
+    queue_t *first, *queue_aux, *aux;
+    // verifica se o elemento existe
+    if (elem == NULL) {
+        return NULL;
+    }
+    // verifica se a fila existe (para ela existir não deve estar vazia)
+    if (*queue == NULL) {
+        return NULL;
+    }
+    else {
+        first = *queue;
+        queue_aux = *queue;
+        // verifica se elemento a ser removido e o primeiro da fila
+        if (elem == first) {
+            // verifica se a fila e' de um so elemento
+            if (queue_size(*queue) == 1)
+                *queue=NULL;
+            else {
+                queue_t *next = first->next;
+                queue_t *prev = first->prev;
+                next->prev = prev;
+                prev->next = next;
+                first = next;
+                *queue = first;
+            }
+            elem->prev = NULL;
+            elem->next = NULL;
+            return elem;
+        }
+        // se não, procura o elemento a ser removido
+        else {
+            while (queue_aux->next != first) {
+                aux = queue_aux->next;
+                if (elem == aux) {
+                    queue_t *next = aux->next;
+                    queue_t *prev = aux->prev;
+                    next->prev = prev;
+                    prev->next = next;
+                    elem->prev = NULL;
+                    elem->next = NULL;
+                    return elem;
+                }
+                queue_aux = queue_aux->next;
+            }
+        }
+    }
+    return NULL;  
+}
+
 int queue_size (queue_t *queue) {
+    if (queue == NULL) // fila vazia
+        return 0;
     int i = 1;
-    queue_t *queue_aux = queue, *first = queue;
+    queue_t *queue_aux = queue;
+    queue_t *first = queue;
     while (queue_aux->next != first) {
         queue_aux = queue_aux->next;
         i ++;

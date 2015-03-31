@@ -45,5 +45,9 @@ int main () {
     queue_append((queue_t **) &fila0, (queue_t *) &item[2]);
     printf("%d\n", queue_size((queue_t *) fila0));
     queue_print ("Saida gerada ", (queue_t*) fila0, print_elem);
+    queue_remove((queue_t **) &fila0, (queue_t *) &item[1]);
+    queue_remove((queue_t **) &fila0, (queue_t *) it);
+    queue_remove((queue_t **) &fila0, (queue_t *) &item[2]);
+    printf("%d\n", queue_size((queue_t *) fila0));
     return 0;
 }

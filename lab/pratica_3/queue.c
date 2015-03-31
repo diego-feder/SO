@@ -95,11 +95,15 @@ int queue_size (queue_t *queue) {
 
 void queue_print (char *name, queue_t *queue, void print_elem (void *) ) {
     queue_t *queue_aux = queue, *first = queue;
-    printf("%s [", name);
-    print_elem((void *)queue_aux);
-    while (queue_aux->next != first) {
-        queue_aux = queue_aux->next;
+    if (queue != NULL) {
+        printf("%s [", name);
         print_elem((void *)queue_aux);
+        while (queue_aux->next != first) {
+            queue_aux = queue_aux->next;
+            print_elem((void *)queue_aux);
+        }
+        printf("]\n");
     }
-    printf("]\n");
+    else
+        printf("%s []\n", name);
 }

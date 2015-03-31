@@ -16,6 +16,18 @@ typedef struct filaint_t
 filaint_t item[N];
 filaint_t *fila0, *fila1, *aux, *final ;
 
+void print_elem (void *ptr)
+{
+   filaint_t *elem = ptr ;
+
+   if (!elem)
+      return ;
+
+   elem->prev ? printf ("%d", elem->prev->id) : printf ("*") ;
+   printf ("<%d>", elem->id) ;
+   elem->next ? printf ("%d", elem->next->id) : printf ("*") ;
+}
+
 int main () {
     fila0=NULL;
     int i;
@@ -32,5 +44,6 @@ int main () {
     queue_append((queue_t **) &fila0, (queue_t *) &item[1]);
     queue_append((queue_t **) &fila0, (queue_t *) &item[2]);
     printf("%d\n", queue_size((queue_t *) fila0));
+    queue_print ("Saida gerada ", (queue_t*) fila0, print_elem);
     return 0;
 }

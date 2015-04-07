@@ -1,0 +1,41 @@
+Trocas de contexto
+
+Implementar tarefas simultâneas dentro de um processo de usuário não é uma tarefa difícil, embora alguns detalhes de baixo nível possam assustar os iniciantes, como a manipulação de registradores para as trocas de contexto. Felizmente, algumas chamadas de sistema POSIX permitem simplificar a manipulação de contextos, eliminando as operações com registradores e tornando o código portável:
+
+    getcontext(&a) : salva o contexto atual na variável a.
+    setcontext(&a) : restaura um contexto salvo anteriormente na variável a.
+    swapcontext(&a,&b) : salva o contexto atual em a e restaura o contexto salvo anteriormente em b.
+    makecontext(&a, …) : ajusta alguns valores internos do contexto salvo em a.
+    as variáveis a e b são do tipo ucontext_t e armazenam contextos de execução.
+
+Mais informações sobre essas funções podem ser obtidas em suas respectivas páginas de manual (man getcontext, etc.).
+
+Estude o código presente no arquivo contexts.c, execute-o e explique seu funcionamento.
+
+Elabore um relatório (no formato correto) cobrindo pelo menos os seguintes pontos:
+
+1. Explicar o objetivo e os parâmetros de cada uma das quatro funções acima.
+2. Explicar o significado dos campos da estrutura ucontext_t que foram utilizados no código.
+3. Explicar cada linha do código de pingpong.c que chame uma dessas funções ou que manipule estruturas do tipo ucontext_t.
+4. Desenhar o diagrama de tempo da execução.
+
+1.
+
+A principal necessidade das funções {get,set,make,swap}context é a de se permitir trocas de contexto em nível de usuário, não somente em nível de núcleo (kernel). Isso é necessário para se definir ordem de execuções de threads, dentre outras aplicações.
+
+a função getcontext(ucontext_t *ucp) é responsável por salvar o contexto em execução dentro da variável de contexto ucp.
+
+a função setcontext(const ucontext_t *ucp); é responsável por restaurar o contexto de execução salvo em ucp para o processdor.
+
+o tipo de dados ucontext_t é uma struct que contém os seguintes campos:
+
+typedef struct ucontext {
+    struct ucontext *uc_link;
+    sigset_t         uc_sigmask;
+    stack_t          uc_stack;
+    mcontext_t       uc_mcontext;
+    ...
+} ucontext_t;
+
+
+

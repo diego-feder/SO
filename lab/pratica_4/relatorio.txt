@@ -27,7 +27,7 @@ a função getcontext(ucontext_t *ucp) é responsável por salvar o contexto em 
 
 a função setcontext(const ucontext_t *ucp); é responsável por restaurar o contexto de execução salvo em ucp para o processdor.
 
-o tipo de dados ucontext_t é uma struct que contém os seguintes campos:
+o tipo de dados ucontext_t é uma struct que contém no minimo os seguintes campos:
 
 typedef struct ucontext {
     struct ucontext *uc_link;
@@ -37,5 +37,15 @@ typedef struct ucontext {
     ...
 } ucontext_t;
 
+onde link é um ponteiro para o proximo contexto a ser resumido quando o corrente terminar, stack e mask representam respectivamente a pilha do contexto e os sinais que ele bloqueia. 
 
+mcontext é a representação de estados de máquina do contexto corrente.
+
+Explicação das funções makecontext e swapcontext 
+
+void makecontext(ucontext_t *ucp, void (*func)(), int argc, ...);
+a função modifica um contexto apontado pelo ucp (obtido em getcontext). Ela associa a esse contexto, uma função a ser executada - void (*func) bem como os argumentos da mesma.
+
+int swapcontext(ucontext_t *oucp, ucontext_t *ucp);
+salva o contexto corrente na estrutura apontada em oucp e então ativa o contexto apontado por ucp
 

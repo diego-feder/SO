@@ -23,7 +23,7 @@ void BodyPing (void * arg)
    for (i=0; i<4; i++)
    {
       printf ("%s %d\n", (char *) arg, i) ;
-      swapcontext (&ContextPing, &ContextPong);
+      swapcontext (&ContextPing, &ContextPong); // vai executar o contexto pong, salvando o corrente em ping
    }	
    printf ("%s FIM\n", (char *) arg) ;
 
@@ -41,7 +41,7 @@ void BodyPong (void * arg)
    for (i=0; i<4; i++)
    {
       printf ("%s %d\n", (char *) arg, i) ;
-      swapcontext (&ContextPong, &ContextPing);
+      swapcontext (&ContextPong, &ContextPing); // vai executar o contexto ping, salvando o corrente em pong
    }
    printf ("%s FIM\n", (char *) arg) ;
 
@@ -56,15 +56,15 @@ int main (int argc, char *argv[])
 
    printf ("Main INICIO\n");
 
-   getcontext (&ContextPing);
+   getcontext (&ContextPing); // Inicializa ContextPong para o contexto corrente
 
    stack = malloc (STACKSIZE) ;
    if (stack)
    {
-      ContextPing.uc_stack.ss_sp = stack ;
-      ContextPing.uc_stack.ss_size = STACKSIZE;
-      ContextPing.uc_stack.ss_flags = 0;
-      ContextPing.uc_link = 0;
+      ContextPing.uc_stack.ss_sp = stack ; // a stack do contexto armazenado em ping
+      ContextPing.uc_stack.ss_size = STACKSIZE; // o tamanho dessa stack
+      ContextPing.uc_stack.ss_flags = 0; // flags da mesma
+      ContextPing.uc_link = 0; // link para o proximo contexto a ser executado - NULO
    }
    else
    {
@@ -72,12 +72,12 @@ int main (int argc, char *argv[])
       exit (1);
    }
 
-   makecontext (&ContextPing, (void*)(*BodyPing), 1, "    Ping");
+   makecontext (&ContextPing, (void*)(*BodyPing), 1, "\tPing"); // associa a funcao BodyPing ao contexto armazenado em ContextPing
 
-   getcontext (&ContextPong);
+   getcontext (&ContextPong); // Inicializa ContextPong para o contexto corrente
 
    stack = malloc (STACKSIZE) ;
-   if (stack)
+   if (stack) // inicializa os campos do contexto
    {
       ContextPong.uc_stack.ss_sp = stack ;
       ContextPong.uc_stack.ss_size = STACKSIZE;
@@ -90,10 +90,10 @@ int main (int argc, char *argv[])
       exit (1);
    }
 
-   makecontext (&ContextPong, (void*)(*BodyPong), 1, "        Pong");
+   makecontext (&ContextPong, (void*)(*BodyPong), 1, "\t\tPong"); // associa a funcao bodypong ao ContextPong
 
-   swapcontext (&ContextMain, &ContextPing);
-   swapcontext (&ContextMain, &ContextPong);
+   swapcontext (&ContextMain, &ContextPing); // salva o contexto de execução corrente em ContextMain, troca pelo ContextPing associado à função bodyping
+   swapcontext (&ContextMain, &ContextPong); // salva o contexto de execução corrente em ContextMain, troca pelo ContextPong associado à função bodypong
 
    printf ("Main FIM\n");
 

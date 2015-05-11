@@ -49,9 +49,38 @@ char * constroi_cabecalho (fila_tarefa_t *tarefas) {
     return cabecalho;
 }
 
-char * constroi_linha (fila_tarefa_t *prontos, fila_tarefa_t *tarefas, fila_tarefa_t *tarefa_corrente, fila_tarefa_t *executados, int t) {
-    char *linha;
-    // varrer cada tarefa
+char * constroi_linha (fila_tarefa_t *tarefas, fila_tarefa_t *prontos, fila_tarefa_t *tarefa_corrente, fila_tarefa_t *executados, int t) {
+    fila_tarefa_t *topo;
+    int i;
+
+    int numero_elementos = queue_size((queue_t *) tarefas) +
+                           queue_size((queue_t *) prontos) +
+                           queue_size((queue_t *) tarefa_corrente) +
+                           queue_size((queue_t *) executados);
+
+    char *linha = malloc(sizeof(char)*(numero_elementos*4 + 9));
+    char **str = calloc(numero_elementos, sizeof(char)*(numero_elementos*4 + 1));
+    char inicio_linha[9];
+
+    // comeco da linha
+    sprintf(inicio_linha, " %d- %d   ", t, t+1);
+    strcat(linha, inicio_linha);
+
+    // varrer cada tarefa nova
+    topo = tarefas;
+    str[topo->id] = malloc(sizeof(char)*5);
+    sprintf(str[topo->id], "    ", topo->id);
+    while (tarefas->next != topo) {
+        tarefas = tarefas->next;
+        str[tarefas->id] = malloc(sizeof(char)*5);
+        sprintf(str[tarefas->id], "    ", tarefas->id);
+    }
+    tarefas = topo;
+
+    for (i = 1; i <= numero_elementos; i ++) {
+        strcat(linha, str[i]);
+    }
+
     return linha;
 }
 
@@ -62,6 +91,7 @@ void fcfs (fila_tarefa_t *tarefas) {
     fila_tarefa_t *topo = tarefas, *tarefa_corrente, *prontos=NULL, *elemento_pronto_novo;
 
     printf("\n%s\n", constroi_cabecalho(tarefas));
+    printf("%s\n", constroi_linha(tarefas, NULL, NULL, NULL, 0));
 
     /*
 

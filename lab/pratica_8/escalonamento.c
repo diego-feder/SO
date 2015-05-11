@@ -29,35 +29,29 @@ typedef struct fila_tarefa_t {
 // definicao da funcao constroi_cabecalho
 
 char * constroi_cabecalho (fila_tarefa_t *tarefas) {
-    int i = 0, num_procs = queue_size((queue_t *) tarefas);
+    fila_tarefa_t *topo = tarefas;
     char *cabecalho = malloc(sizeof(char)*4 + 8);
-    strcat (cabecalho, "tempo   ");
     char p[5];
-    while (i < num_procs) {
-        sprintf(p, "P%d  ", i+1);
+
+    // comeco da montagem
+    strcat (cabecalho, "tempo   ");
+    sprintf(p, "P%d  ", topo->id);
+    strcat(cabecalho, p);
+    
+    // adicionando cada processo
+    while (tarefas->next != topo) {
+        tarefas = tarefas->next;
+        sprintf(p, "P%d  ", tarefas->id);
         strcat(cabecalho, p);
-        i ++;
     }
     strcat(cabecalho,"\0");
+
     return cabecalho;
 }
 
-char * constroi_linha (fila_tarefa_t *prontos, fila_tarefa_t *tarefas, fila_tarefa_t *tarefa_corrente, int t) {
+char * constroi_linha (fila_tarefa_t *prontos, fila_tarefa_t *tarefas, fila_tarefa_t *tarefa_corrente, fila_tarefa_t *executados, int t) {
+    char *linha;
     // varrer cada tarefa
-    fila_tarefa_t *topo = prontos;
-    char *linha = malloc(sizeof(char)*(queue_size((queue_t *) prontos)*4 + 8));
-    char time_window[8];
-    while (prontos->next != topo) {
-        sprintf(time_window, " %d- %d   ", t-1, t);
-        strcat(linha, time_window);
-        if (prontos == tarefa_corrente) {
-            strcat(linha, "##  ");
-        }
-        else {
-            strcat(linha, "--  ");
-        }
-        prontos = prontos->next;
-    }
     return linha;
 }
 
@@ -68,6 +62,8 @@ void fcfs (fila_tarefa_t *tarefas) {
     fila_tarefa_t *topo = tarefas, *tarefa_corrente, *prontos=NULL, *elemento_pronto_novo;
 
     printf("\n%s\n", constroi_cabecalho(tarefas));
+
+    /*
 
     while (t < T_MAX) {
         //se ha uma tarefa rodando - pesquisar em todas as tarefas
@@ -114,7 +110,7 @@ void fcfs (fila_tarefa_t *tarefas) {
         tarefa_corrente->tempo_executado_total ++;
 
         printf("%s\n", constroi_linha(prontos, tarefas, tarefa_corrente, t));
-    }
+    }*/
 }
 
 int main () {

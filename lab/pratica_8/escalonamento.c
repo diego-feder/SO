@@ -63,23 +63,60 @@ char * constroi_linha (fila_tarefa_t *tarefas, fila_tarefa_t *prontos, fila_tare
     char inicio_linha[9];
 
     // comeco da linha
-    sprintf(inicio_linha, " %d- %d   ", t, t+1);
+    sprintf(inicio_linha, " %d-%2d   ", t, t+1);
     strcat(linha, inicio_linha);
 
     // varrer cada tarefa nova
-    topo = tarefas;
-    str[topo->id] = malloc(sizeof(char)*5);
-    sprintf(str[topo->id], "    ", topo->id);
-    while (tarefas->next != topo) {
-        tarefas = tarefas->next;
-        str[tarefas->id] = malloc(sizeof(char)*5);
-        sprintf(str[tarefas->id], "    ", tarefas->id);
+    if (queue_size((queue_t *) tarefas) > 0) {
+        topo = tarefas;
+        str[topo->id-1] = malloc(sizeof(char)*5);
+        sprintf(str[topo->id-1], "    ");
+        while (tarefas->next != topo) {
+            tarefas = tarefas->next;
+            str[tarefas->id-1] = malloc(sizeof(char)*5);
+            sprintf(str[tarefas->id-1], "    ");
+        }
+        tarefas = topo;
     }
-    tarefas = topo;
 
-    for (i = 1; i <= numero_elementos; i ++) {
+    // varre cada tarefa em prontos
+    if (queue_size((queue_t *) prontos) > 0) {
+        topo = prontos;
+        str[topo->id-1] = malloc(sizeof(char)*5);
+        sprintf(str[topo->id-1], "--  ");
+        while (prontos->next != topo) {
+            prontos = prontos->next;
+            str[prontos->id-1] = malloc(sizeof(char)*5);
+            sprintf(str[prontos->id-1], "--  ");
+        }
+        prontos = topo;
+    }
+
+    // faz a tarefa corrente
+    if (queue_size((queue_t *) tarefa_corrente) > 0) {
+        str[tarefa_corrente->id-1] = malloc(sizeof(char)*5);
+        sprintf(str[tarefa_corrente->id-1], "##  ");
+    }
+
+    // varre as tarefas ja executadas
+    if (queue_size((queue_t *) executados) > 0) {
+        topo = executados;
+        str[topo->id-1] = malloc(sizeof(char)*5);
+        sprintf(str[topo->id-1], "!!  ");
+        while (executados->next != topo) {
+            executados = executados->next;
+            str[executados->id-1] = malloc(sizeof(char)*5);
+            sprintf(str[executados->id-1], "!!  ");
+        }
+        executados = topo;
+    }
+
+    // faz o append das tarefas e seus estados correntes
+    for (i = 0; i < numero_elementos; i ++) {
         strcat(linha, str[i]);
     }
+
+    strcat(linha, "\0");
 
     return linha;
 }
@@ -88,44 +125,44 @@ void fcfs (fila_tarefa_t *tarefas) {
     int t = 0;
     pthread_mutex_t processador;
     pthread_mutex_init(&processador, NULL);
-    fila_tarefa_t *topo = tarefas, *tarefa_corrente, *prontos=NULL, *elemento_pronto_novo;
+    fila_tarefa_t *topo = NULL, *tarefa_corrente = NULL, *prontos = NULL, *executados = NULL, *elemento_pronto_novo = NULL;
 
     printf("\n%s\n", constroi_cabecalho(tarefas));
-    printf("%s\n", constroi_linha(tarefas, NULL, NULL, NULL, 0));
-
-    /*
 
     while (t < T_MAX) {
-        //se ha uma tarefa rodando - pesquisar em todas as tarefas
-        while (tarefas->next != topo) {
-            if (tarefas->estado_atual == 2) { // tarefa rodando 
-                // define quem e a tarefa corrente
-                tarefa_corrente = tarefas;
-                // fim da execucao de tarefa
-                if (tarefas->tempo_de_vida == tarefa_corrente->duracao) {
-                    tarefas->estado_atual = 3;
-                    pthread_mutex_unlock(&processador);
-                }
+
+        if (tarefa_corrente != NULL) { // se ha tarefa rodando
+            if (tarefa_corrente->tempo_executado_total == t) {
+                tarefa_corrente->estado_atual = 3; // terminado
+                queue_append((queue_t **) &executados, (queue_t *) tarefa_corrente);
+                tarefa_corrente = NULL;
             }
-            tarefas = tarefas->next;
         }
 
-        tarefas = topo;
+        // para cada tarefa existente - averiguar se ela comeca em t e coloca-la em prontos
+        topo = tarefas;
+        while (tarefas->next != topo && queue_size((queue_t *) tarefas) > 0) {
+            if (tarefas->inicio == t && tarefas == topo) { // primeiro elemento
+                elemento_pronto_novo = (fila_tarefa_t *) queue_remove((queue_t **) &tarefas, (queue_t *) tarefas);
+                queue_append((queue_t **) &prontos, (queue_t *) elemento_pronto_novo);
+                topo = tarefas;
+            }
+            else if (tarefas->inicio == t) {
+                elemento_pronto_novo = (fila_tarefa_t *) queue_remove((queue_t **) &tarefas, (queue_t *) tarefas);
+                queue_append((queue_t **) &prontos, (queue_t *) elemento_pronto_novo);
+            }
+            else {
+                tarefas = tarefas->next;
+            }
+        }
+        tarefas = tarefas->next;
 
-        //para cada tarefa
-        while (tarefas->next != topo) {
+        if (queue_size((queue_t *) tarefas) == 1) {
             if (tarefas->inicio == t) {
-                tarefas->estado_atual = 1;
-                elemento_pronto_novo = malloc(sizeof(fila_tarefa_t)); // aloca endereco novo
-                memcpy(elemento_pronto_novo, tarefas, sizeof(fila_tarefa_t));
-                elemento_pronto_novo->prev = NULL;
-                elemento_pronto_novo->next = NULL;
-                queue_append((queue_t **) &prontos, (queue_t *) &elemento_pronto_novo);
+                elemento_pronto_novo = (fila_tarefa_t *) queue_remove((queue_t **) &tarefas, (queue_t *) tarefas);
+                queue_append((queue_t **) &prontos, (queue_t *) elemento_pronto_novo);
             }
-            tarefas = tarefas->next;
         }
-
-        tarefas = topo;
 
         // se o processador estiver livre
         if (!pthread_mutex_trylock(&processador)) {
@@ -136,11 +173,11 @@ void fcfs (fila_tarefa_t *tarefas) {
             }
         }
         
+        printf("%s\n", constroi_linha(tarefas, prontos, tarefa_corrente, executados, t));
+
         t ++;
         tarefa_corrente->tempo_executado_total ++;
-
-        printf("%s\n", constroi_linha(prontos, tarefas, tarefa_corrente, t));
-    }*/
+    }
 }
 
 int main () {

@@ -28,7 +28,7 @@ typedef struct fila_tarefa_t {
 // definicao da funcao insere_ordenado
 
 void queue_append_sorted (fila_tarefa_t **queue, fila_tarefa_t *elem) {
-    fila_tarefa_t *aux;
+    fila_tarefa_t *aux, *first;
     if (elem == NULL) {
         fprintf(stderr, "Elemento não existente!\n");
         return;
@@ -45,7 +45,7 @@ void queue_append_sorted (fila_tarefa_t **queue, fila_tarefa_t *elem) {
         return;
     }
     else {  // a fila já existe, elemento deve ser inserido na posicao de acordo com sua duracao
-        aux = *queue;
+        aux = first = *queue;
         // o elemento novo e de menor duracao possivel:
         if (elem->duracao < aux->duracao) {
             elem->prev = aux->prev;
@@ -56,13 +56,13 @@ void queue_append_sorted (fila_tarefa_t **queue, fila_tarefa_t *elem) {
             return;
         }
         else {
-            while (aux->next != *queue && aux->duracao < elem->duracao) {
+            while (aux->next != first && aux->next->duracao < elem->duracao) {
                 aux = aux->next;
             }
+            elem->next = aux->next;
+            aux->next->prev = elem;
             elem->prev = aux;
-            elem->next = aux;
-            aux->prev->next = elem;
-            aux->prev = elem;
+            aux->next = elem;
         }
         return;
     }

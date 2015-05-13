@@ -11,3 +11,10 @@ eu posso colocar um contador inteiro i = 0 e coloco meu limite de iteracoes ate 
 a cada vez que eu remover um elemento da minha lista de tarefas, a quantidade decresce, zero i para se reiniciar o processo e atualizo meu iterador para o novo topo das tarefas, para se evitar inconsistencias.
 
 dessa forma, garanto que em cada instante de tempo t, todas as tarefas sejam averiguadas
+
+
+estrategia 2 - insercao de elementos sjf - insercao de elemento menor duracao
+
+eu pego o primeiro elemento da fila e o elemento a ser inserido
+
+se a duracao do elemento a ser inserido e menor que o primeiro, insiro o novo elemento no topo da lista. Se nao, caminho a direita, ate encontrar uma tarefa da fila que tenha duracao maior que o primeiro

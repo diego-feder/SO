@@ -25,6 +25,50 @@ typedef struct fila_tarefa_t {
     int tempo_espera;
 } fila_tarefa_t;
 
+// definicao da funcao insere_ordenado
+
+void queue_append_sorted (fila_tarefa_t **queue, fila_tarefa_t *elem) {
+    fila_tarefa_t *aux;
+    if (elem == NULL) {
+        fprintf(stderr, "Elemento não existente!\n");
+        return;
+    }
+    else if (elem->prev != NULL || elem->next != NULL) {
+        fprintf(stderr, "Elemento já faz parte de outra fila!\n");
+        return;
+    }
+    if (*queue == NULL) {  // criacao de fila e insercao de elemento
+        aux = elem; // define-se o primeiro elemento
+        aux->prev = elem;
+        aux->next = elem;
+        *queue=aux;
+        return;
+    }
+    else {  // a fila já existe, elemento deve ser inserido na posicao de acordo com sua duracao
+        aux = *queue;
+        // o elemento novo e de menor duracao possivel:
+        if (elem->duracao < aux->duracao) {
+            elem->prev = aux->prev;
+            aux->prev->next = elem;
+            elem->next = aux;
+            aux->prev = elem;
+            *queue=elem;
+            return;
+        }
+        else {
+            while (aux->next != *queue && aux->duracao < elem->duracao) {
+                aux = aux->next;
+            }
+            elem->prev = aux;
+            elem->next = aux;
+            aux->prev->next = elem;
+            aux->prev = elem;
+        }
+        return;
+    }
+
+}
+
 // definicao da funcao constroi_cabecalho
 
 char * constroi_cabecalho (fila_tarefa_t *tarefas) {
@@ -177,6 +221,62 @@ void fcfs (fila_tarefa_t *tarefas) {
     }
 }
 
+void sjf (fila_tarefa_t *tarefas) {
+    int t = 0, numero_processos_executados = 0, total_processos = queue_size((queue_t *) tarefas), i;
+    pthread_mutex_t processador;
+    pthread_mutex_init(&processador, NULL);
+    fila_tarefa_t *tarefa_corrente = NULL, *prontos = NULL, *executados = NULL, *elemento_pronto_novo = NULL, *iterador = NULL;
+
+    printf("\n%s\n", constroi_cabecalho(tarefas));
+
+    while (t < T_MAX && numero_processos_executados < total_processos) {
+
+        if (tarefa_corrente != NULL) { // se ha tarefa rodando
+            if (tarefa_corrente->duracao == tarefa_corrente->tempo_executado_total) {
+                tarefa_corrente->estado_atual = 3; // terminado
+                queue_append((queue_t **) &executados, (queue_t *) tarefa_corrente);
+                pthread_mutex_unlock(&processador);
+                tarefa_corrente = NULL;
+                numero_processos_executados ++;
+            }
+        }
+
+        // varre tarefas para adicionar na fila de prontos
+        i = 0;
+        iterador = tarefas;
+        while (i < queue_size((queue_t *) tarefas)) {
+            if (iterador->inicio == t) { // processo se inicia agora
+                elemento_pronto_novo = (fila_tarefa_t *) queue_remove((queue_t **) &tarefas, (queue_t *) iterador);
+                queue_append_sorted(&prontos, elemento_pronto_novo);
+                i = 0;
+                iterador = tarefas;
+            }
+            else {
+                i ++;
+                iterador = iterador->next;
+            }
+        }
+
+        // se houver tarefas prontas
+        if (queue_size((queue_t *) prontos) > 0) {
+            if (!pthread_mutex_trylock(&processador)) { // se o processador estiver livre
+                tarefa_corrente = (fila_tarefa_t *) queue_remove((queue_t **) &prontos, (queue_t *) prontos);
+                tarefa_corrente->estado_atual = 2; // tarefa rodando
+                tarefa_corrente->tempo_executado_total = 0;
+            }
+        }
+        
+        printf("%s\n", constroi_linha(tarefas, prontos, tarefa_corrente, executados, t));
+
+        t ++;
+
+        if (tarefa_corrente != NULL) {
+            tarefa_corrente->tempo_executado_total ++;
+        }
+    }
+}
+
+
 int main () {
     // definicao da fila de tarefas
     fila_tarefa_t *tarefas = NULL, *tarefa;
@@ -198,7 +298,7 @@ int main () {
         i ++;
     }
 
-    fcfs(tarefas);
+    sjf(tarefas);
     
     return 0;
 }

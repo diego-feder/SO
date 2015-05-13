@@ -123,10 +123,10 @@ char * constroi_linha (fila_tarefa_t *tarefas, fila_tarefa_t *prontos, fila_tare
 }
 
 void fcfs (fila_tarefa_t *tarefas) {
-    int t = 0, numero_processos_executados = 0, total_processos = queue_size((queue_t *) tarefas);
+    int t = 0, numero_processos_executados = 0, total_processos = queue_size((queue_t *) tarefas), i;
     pthread_mutex_t processador;
     pthread_mutex_init(&processador, NULL);
-    fila_tarefa_t *tarefa_corrente = NULL, *prontos = NULL, *executados = NULL, *elemento_pronto_novo = NULL;
+    fila_tarefa_t *tarefa_corrente = NULL, *prontos = NULL, *executados = NULL, *elemento_pronto_novo = NULL, *iterador = NULL;
 
     printf("\n%s\n", constroi_cabecalho(tarefas));
 
@@ -143,36 +143,21 @@ void fcfs (fila_tarefa_t *tarefas) {
         }
 
         // varre tarefas para adicionar na fila de prontos
-        
-        if (tarefas != NULL) {
-            // cria array de dados para conter tarefas selecionadas a irem a fila de prontos
-            fila_tarefa_t **selecionados = NULL, *iterador = tarefas;
-            int numero_tarefas_selecionadas = 0, i = 0;
-
-            while (iterador->next != tarefas) {
-                if (iterador->inicio == t) { // se a tarefa comeca agora
-                    numero_tarefas_selecionadas ++;
-                    selecionados = realloc(selecionados, numero_tarefas_selecionadas*sizeof(int));
-                    selecionados[i] = iterador;
-                    i ++;
-                }
+        i = 0;
+        iterador = tarefas;
+        while (i < queue_size((queue_t *) tarefas)) {
+            if (iterador->inicio == t) { // processo se inicia agora
+                elemento_pronto_novo = (fila_tarefa_t *) queue_remove((queue_t **) &tarefas, (queue_t *) iterador);
+                queue_append((queue_t **) &prontos, (queue_t *) elemento_pronto_novo);
+                i = 0;
+                iterador = tarefas;
+            }
+            else {
+                i ++;
                 iterador = iterador->next;
             }
-            if (iterador->inicio == t) { // se a ultima tarefa comeca agora ou se so existe uma tarefa
-                numero_tarefas_selecionadas ++;
-                selecionados = realloc(selecionados, numero_tarefas_selecionadas*sizeof(int));
-                selecionados[i] = iterador;
-                i ++;
-            }
-
-            // remove tarefa da fila de tarefas e adiciona-a na fila de prontos
-            for (i = 0; i < numero_tarefas_selecionadas; i ++) {
-                elemento_pronto_novo = (fila_tarefa_t *) queue_remove((queue_t **) &tarefas, (queue_t *) selecionados[i]);
-                queue_append((queue_t **) &prontos, (queue_t *) elemento_pronto_novo);
-            }
-
         }
-                        
+
         // se houver tarefas prontas
         if (queue_size((queue_t *) prontos) > 0) {
             if (!pthread_mutex_trylock(&processador)) { // se o processador estiver livre

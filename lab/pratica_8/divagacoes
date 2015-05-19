@@ -1,0 +1,20 @@
+gostaria de uma solucao oraculo, que todos elementos que compartilhassem certo atributo - que se iniciam num instante t - fossem removidos da fila de tarefas e adicionados na fila de prontos. mas isso nao e possivel
+
+vou pensar em outra estrategia
+
+uma simples iteração na lista duplamente encadeada, de enquanto o proximo elemento do iterador for diferente do que o topo da lista de tarefas, nao me resolve, pois no meio dessas iteracoes, a lista de tarefas ira mudar e o seu topo tambem, por isso, isso se torna uma coisa nao deterministica e essa iteracao nao serve.
+
+eu conheco quantos elementos existem na minha lista de tarefas
+
+eu posso colocar um contador inteiro i = 0 e coloco meu limite de iteracoes ate a quantidade de elementos existentes na minha lista de tarefas
+
+a cada vez que eu remover um elemento da minha lista de tarefas, a quantidade decresce, zero i para se reiniciar o processo e atualizo meu iterador para o novo topo das tarefas, para se evitar inconsistencias.
+
+dessa forma, garanto que em cada instante de tempo t, todas as tarefas sejam averiguadas
+
+
+estrategia 2 - insercao de elementos sjf - insercao de elemento menor duracao
+
+eu pego o primeiro elemento da fila e o elemento a ser inserido
+
+se a duracao do elemento a ser inserido e menor que o primeiro, insiro o novo elemento no topo da lista. Se nao, caminho a direita, ate encontrar uma tarefa da fila que tenha duracao maior que o primeiro

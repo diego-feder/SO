@@ -10,9 +10,9 @@
 
 // definicao da fila de tarefas
 
-typedef struct fila_tarefa_t {
-    struct fila_tarefa_t *prev;
-    struct fila_tarefa_t *next;
+typedef struct tarefa_t {
+    struct tarefa_t *prev;
+    struct tarefa_t *next;
     int id;
     int inicio;
     int duracao;
@@ -23,12 +23,12 @@ typedef struct fila_tarefa_t {
     int tempo_executado_total;
     int tempo_executado_quantum_atual;
     int tempo_espera;
-} fila_tarefa_t;
+} tarefa_t;
 
 // definicao da funcao constroi_cabecalho
 
-char * constroi_cabecalho (fila_tarefa_t *tarefas) {
-    fila_tarefa_t *topo = tarefas;
+char * constroi_cabecalho (tarefa_t *tarefas) {
+    tarefa_t *topo = tarefas;
     char *cabecalho = malloc(sizeof(char)*4 + 9);
     char p[5];
 
@@ -48,8 +48,8 @@ char * constroi_cabecalho (fila_tarefa_t *tarefas) {
     return cabecalho;
 }
 
-char * constroi_linha (fila_tarefa_t *tarefas, fila_tarefa_t *prontos, fila_tarefa_t *tarefa_corrente, fila_tarefa_t *executados, int t) {
-    fila_tarefa_t *topo;
+char * constroi_linha (tarefa_t *tarefas, tarefa_t *prontos, tarefa_t *tarefa_corrente, tarefa_t *executados, int t) {
+    tarefa_t *topo;
     int i;
 
     int numero_elementos = queue_size((queue_t *) tarefas) +
@@ -122,11 +122,11 @@ char * constroi_linha (fila_tarefa_t *tarefas, fila_tarefa_t *prontos, fila_tare
     return linha;
 }
 
-void fcfs (fila_tarefa_t *tarefas) {
+void fcfs (tarefa_t *tarefas) {
     int t = 0;
     pthread_mutex_t processador;
     pthread_mutex_init(&processador, NULL);
-    fila_tarefa_t *iterador = NULL, *tarefa_corrente = NULL, *prontos = NULL, *executados = NULL, *elemento_pronto_novo = NULL;
+    tarefa_t *iterador = NULL, *tarefa_corrente = NULL, *prontos = NULL, *executados = NULL, *elemento_pronto_novo = NULL;
 
     printf("\n%s\n", constroi_cabecalho(tarefas));
 
@@ -149,7 +149,7 @@ void fcfs (fila_tarefa_t *tarefas) {
             // so existe uma tarefa em fila
             if (iterador->next == tarefas && queue_size((queue_t *) tarefas) == 1) {
                 if (iterador->inicio == t) { // a tarefa se inicia agora
-                    elemento_pronto_novo =(fila_tarefa_t *) queue_remove((queue_t **) &tarefas, (queue_t *) iterador);
+                    elemento_pronto_novo =(tarefa_t *) queue_remove((queue_t **) &tarefas, (queue_t *) iterador);
                     queue_append((queue_t **) &prontos, (queue_t *) elemento_pronto_novo);
                 }
             }
@@ -157,7 +157,7 @@ void fcfs (fila_tarefa_t *tarefas) {
             else {
                 while (iterador->next != tarefas) {
                     if (iterador->inicio == t) { // a tarefa se inicia agora
-                        elemento_pronto_novo =(fila_tarefa_t *) queue_remove((queue_t **) &tarefas, (queue_t *) iterador);
+                        elemento_pronto_novo =(tarefa_t *) queue_remove((queue_t **) &tarefas, (queue_t *) iterador);
                         queue_append((queue_t **) &prontos, (queue_t *) elemento_pronto_novo);
                         iterador = tarefas;
                     }
@@ -168,7 +168,7 @@ void fcfs (fila_tarefa_t *tarefas) {
                 // se a partir da ultima remocao, sobrou somente uma tarefa e ela se inicia agora
                 if (iterador->next == tarefas && queue_size((queue_t *) tarefas) == 1) {
                     if (iterador->inicio == t) { // a tarefa se inicia agora
-                        elemento_pronto_novo =(fila_tarefa_t *) queue_remove((queue_t **) &tarefas, (queue_t *) iterador);
+                        elemento_pronto_novo =(tarefa_t *) queue_remove((queue_t **) &tarefas, (queue_t *) iterador);
                         queue_append((queue_t **) &prontos, (queue_t *) elemento_pronto_novo);
                     }
                 }
@@ -178,7 +178,7 @@ void fcfs (fila_tarefa_t *tarefas) {
         // se houver tarefas prontas
         if (queue_size((queue_t *) prontos) > 0) {
             if (!pthread_mutex_trylock(&processador)) { // se o processador estiver livre
-                tarefa_corrente = (fila_tarefa_t *) queue_remove((queue_t **) &prontos, (queue_t *) prontos);
+                tarefa_corrente = (tarefa_t *) queue_remove((queue_t **) &prontos, (queue_t *) prontos);
                 tarefa_corrente->estado_atual = 2; // tarefa rodando
                 tarefa_corrente->tempo_executado_total = 0;
             }
@@ -195,12 +195,12 @@ void fcfs (fila_tarefa_t *tarefas) {
 
 int main () {
     // definicao da fila de tarefas
-    fila_tarefa_t *tarefas = NULL, *tarefa;
+    tarefa_t *tarefas = NULL, *tarefa;
     // le dados da entrada padrao
     // exemplo: ./a.out <id> <inicio> <duracao> <prioridade>
     int c, i = 0;
     while (c != EOF) {
-        tarefa = malloc(sizeof(fila_tarefa_t));
+        tarefa = malloc(sizeof(tarefa_t));
         tarefa->prev = NULL;
         tarefa->next = NULL;
         tarefa->id = i+1;

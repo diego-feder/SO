@@ -116,6 +116,39 @@ void task_yield() {
   task_switch(&dispatcher);
 }
 
+void task_suspend (task_t *task, task_t **queue) {
+  task_t *tarefa_suspensa;
+  if (*queue != NULL) {
+    if (task == NULL) { // suspende tarefa corrente
+      tarefa_suspensa = (task_t *) queue_remove((queue_t **) &current_task, (queue_t *) current_task);
+      tarefa_suspensa->state = 3; // suspensa
+      queue_append((queue_t **) queue, (queue_t *) tarefa_suspensa);
+    }
+    else {
+      tarefa_suspensa = (task_t *) queue_remove((queue_t **) &task, (queue_t *) task);
+      tarefa_suspensa->state = 3; // suspensa
+      queue_append((queue_t **) queue, (queue_t *) tarefa_suspensa);
+    }
+  }
+}
+
+void task_resume (task_t *task) {
+    if (task != NULL) {
+      // modifica o estado da tarefa
+      task->state = 2;
+      // se a tarefa estiver em uma fila, retira para adiciona-la em prontos
+      if (task->next != NULL && task->prev != NULL) {
+        task = (task_t *) queue_remove ((queue_t **) &task, (queue_t *) task);
+        queue_append((queue_t **) &prontos, (queue_t *) task);
+      }
+      else {
+        queue_append((queue_t **) &prontos, (queue_t *) task);
+      }
+  }
+  else
+    perror("Impossivel resumir tarefa nula\n");
+}
+
 void dispatcher_body () {
   while (queue_size((queue_t *) prontos) > 0) {
     task_t *next = scheduler();

@@ -183,3 +183,16 @@ void task_yield() {
   // devolve processador ao dispatcher
   task_switch(&dispatcher);
 }
+
+void task_setprio (task_t *task, int prio) {
+  if (task != NULL)
+    task->dynamic_prio = task->static_prio = prio;
+  else
+    current_task->dynamic_prio = current_task->static_prio = prio;
+}
+
+int task_getprio (task_t *task) {
+  if (task != NULL)
+    return task->static_prio;
+  return current_task->static_prio;
+}
